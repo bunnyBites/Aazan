@@ -32,3 +32,4 @@ data/aazan.db-shm
 data/aazan.db-wal
 /dist
 node_modules/
+aazan_dev_prompt.md
