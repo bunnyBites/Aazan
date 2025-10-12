@@ -30,19 +30,43 @@ pub async fn create_session(
     .fetch_one(pool)
     .await?;
 
-    let session = Session {
-        id: Uuid::parse_str(&row.id).map_err(|e| sqlx::Error::Decode(Box::new(e)))?,
-        topic: row.topic,
-        material_text: row.material_text,
-        status: row.status,
-        created_at: chrono::DateTime::parse_from_rfc3339(&row.created_at)
-            .map_err(|e| sqlx::Error::Decode(Box::new(e)))?
-            .with_timezone(&Utc),
-        updated_at: chrono::DateTime::parse_from_rfc3339(&row.updated_at)
-            .map_err(|e| sqlx::Error::Decode(Box::new(e)))?
-            .with_timezone(&Utc),
-        user_id: row.user_id.unwrap_or_else(|| "temp_user".to_string()),
-    };
+    let session = Session::from_strings(
+        row.id,
+        row.topic,
+        row.material_text,
+        row.status,
+        row.created_at,
+        row.updated_at,
+        row.user_id.unwrap(),
+    )
+    .unwrap();
+
+    Ok(session)
+}
+
+pub async fn get_session(pool: &SqlitePool, id: Uuid) -> Result<Session, sqlx::Error> {
+    let id_str = id.to_string();
+
+    let row = sqlx::query!(
+        r#"
+      SELECT * FROM sessions
+      WHERE id = $1
+      "#,
+        id_str,
+    )
+    .fetch_one(pool)
+    .await?;
+
+    let session = Session::from_strings(
+        row.id,
+        row.topic,
+        row.material_text,
+        row.status,
+        row.created_at,
+        row.updated_at,
+        row.user_id.unwrap(),
+    )
+    .unwrap();
 
     Ok(session)
 }

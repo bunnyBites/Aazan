@@ -1,4 +1,4 @@
-use crate::backend::handlers::create_session_handler;
+use crate::backend::handlers::{create_session_handler, get_session_handler};
 use axum::{
     Router,
     response::Html,
@@ -38,6 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = Router::new()
         .route("/api/sessions", post(create_session_handler))
+        .route("/api/sessions/{:id}", get(get_session_handler))
         .route("/", get(|| home_page()))
         .with_state(pool)
         .layer(TraceLayer::new_for_http());

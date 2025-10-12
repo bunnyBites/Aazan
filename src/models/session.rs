@@ -15,6 +15,28 @@ pub struct Session {
     pub user_id: String, // We'll add this when auth is implemented
 }
 
+impl Session {
+    pub fn from_strings(
+        id: String,
+        topic: String,
+        material_text: String,
+        status: String,
+        created_at: String,
+        updated_at: String,
+        user_id: String,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        Ok(Session {
+            id: Uuid::parse_str(&id)?,
+            topic,
+            material_text,
+            status,
+            created_at: created_at.parse()?,
+            updated_at: updated_at.parse()?,
+            user_id,
+        })
+    }
+}
+
 // represents the data we expect from the user to create a session
 #[derive(Debug, Deserialize)]
 pub struct CreateSession {
