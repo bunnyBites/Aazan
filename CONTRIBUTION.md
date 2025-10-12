@@ -1,4 +1,4 @@
-# Contributing to [Project Name]
+# Contributing to Aazan
 
 First off, thank you for considering contributing to [Project Name]! It's people like you who make this project great. Your help is essential for keeping it alive.
 
