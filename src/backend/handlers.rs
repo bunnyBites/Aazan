@@ -80,17 +80,26 @@ pub async fn upload_session_handler(mut multipart: Multipart) {
          * multipart.next_field(): We loop through each "part" of the form data. A form can contain multiple fields (e.g., a file and some text metadata).
          * .bytes().await: This consumes the data from the field and loads it into memory. For very large files, a streaming approach would be better, but for our 10MB limit, this is fine.
          * */
-        let name = field.name().unwrap().to_string();
-        let file_name = field.file_name().unwrap_or("unknown").to_string();
-        let content_type = field.content_type().unwrap_or("unknown").to_string();
-        let data = field.bytes().await.unwrap();
+        if field.name() == Some("pdf_file") {
+            let file_name = field.file_name().unwrap_or("unknown_file").to_string();
+            let data = field.bytes().await.unwrap();
 
-        tracing::info!(
-            "Received field: '{}', file_name: '{}', content_type: '{}', with {} bytes",
-            name,
-            file_name,
-            content_type,
-            data.len()
-        );
+            tracing::info!("Received file '{}' with {} bytes", file_name, data.len());
+
+            // extract text from the in-memory bytes
+            match pdf_extract::extract_text_from_mem(&data) {
+                Ok(text) => {
+                    tracing::info!("Successfully extracted text from PDF.");
+                    // for now, we'll just print the first 200 characters
+                    let preview: String = text.chars().take(200).collect();
+                    tracing::debug!("Extracted text preview: {}...", preview);
+                }
+                Err(e) => {
+                    tracing::error!("Failed to extract text from PDF: {}", e);
+                }
+            }
+            // break after processing the first valid file field
+            break;
+        }
     }
 }
