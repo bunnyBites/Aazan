@@ -1,6 +1,6 @@
 use crate::{database::sessions::create_session, models::session::CreateSession};
 use axum::{
-    extract::{Path, State},
+    extract::{Multipart, Path, State},
     http::StatusCode,
     response::{IntoResponse, Json},
 };
@@ -70,5 +70,27 @@ pub async fn delete_session_handler(
             tracing::error!("Failed to delete session: {}", e);
             StatusCode::INTERNAL_SERVER_ERROR
         }
+    }
+}
+
+pub async fn upload_session_handler(mut multipart: Multipart) {
+    while let Some(field) = multipart.next_field().await.unwrap() {
+        /*
+         * axum::extract::Multipart: This extractor streams the incoming request body, parsing it as a multipart form.
+         * multipart.next_field(): We loop through each "part" of the form data. A form can contain multiple fields (e.g., a file and some text metadata).
+         * .bytes().await: This consumes the data from the field and loads it into memory. For very large files, a streaming approach would be better, but for our 10MB limit, this is fine.
+         * */
+        let name = field.name().unwrap().to_string();
+        let file_name = field.file_name().unwrap_or("unknown").to_string();
+        let content_type = field.content_type().unwrap_or("unknown").to_string();
+        let data = field.bytes().await.unwrap();
+
+        tracing::info!(
+            "Received field: '{}', file_name: '{}', content_type: '{}', with {} bytes",
+            name,
+            file_name,
+            content_type,
+            data.len()
+        );
     }
 }

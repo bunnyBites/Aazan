@@ -1,5 +1,6 @@
 use crate::backend::handlers::{
     create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
+    upload_session_handler,
 };
 use axum::{
     Router,
@@ -41,6 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
         .route("/api/sessions", get(list_sessions_handler))
         .route("/api/sessions", post(create_session_handler))
+        .route("/api/sessions/upload", post(upload_session_handler))
         .route("/api/sessions/{:id}", get(get_session_handler))
         .route("/api/sessions/{:id}", delete(delete_session_handler))
         .route("/", get(|| home_page()))

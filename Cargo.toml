@@ -6,7 +6,7 @@ rust-version = "1.85"
 
 [dependencies]
 # Web Framework
-axum = "0.8"
+axum = { version = "0.8", features=["multipart"] }
 axum-extra = { version = "0.9", features = ["typed-header"] }
 
 # Async Runtime
