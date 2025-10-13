@@ -1,6 +1,9 @@
-use crate::backend::handlers::{
-    create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
-    upload_session_handler,
+use crate::backend::{
+    message_handlers::{create_message_handler, list_messages_handler},
+    session_handlers::{
+        create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
+        upload_session_handler,
+    },
 };
 use axum::{
     Router,
@@ -45,6 +48,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/sessions/upload", post(upload_session_handler))
         .route("/api/sessions/{:id}", get(get_session_handler))
         .route("/api/sessions/{:id}", delete(delete_session_handler))
+        // nested message routes
+        .route(
+            "/api/sessions/{:id}/messages",
+            get(list_messages_handler).post(create_message_handler),
+        )
         .route("/", get(|| home_page()))
         .with_state(pool)
         .layer(TraceLayer::new_for_http());
