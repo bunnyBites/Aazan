@@ -44,3 +44,17 @@ pub async fn get_session_handler(
         }
     }
 }
+
+pub async fn list_sessions_handler(State(pool): State<SqlitePool>) -> impl IntoResponse {
+    match crate::database::sessions::list_sessions(&pool).await {
+        Ok(sessions) => (StatusCode::OK, Json(sessions)).into_response(),
+        Err(e) => {
+            tracing::error!("Failed to list sessions: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Failed to retrieve sessions",
+            )
+                .into_response()
+        }
+    }
+}

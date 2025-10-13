@@ -1,4 +1,6 @@
-use crate::backend::handlers::{create_session_handler, get_session_handler};
+use crate::backend::handlers::{
+    create_session_handler, get_session_handler, list_sessions_handler,
+};
 use axum::{
     Router,
     response::Html,
@@ -37,6 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!("Database connection pool created.");
 
     let app = Router::new()
+        .route("/api/sessions", get(list_sessions_handler))
         .route("/api/sessions", post(create_session_handler))
         .route("/api/sessions/{:id}", get(get_session_handler))
         .route("/", get(|| home_page()))
