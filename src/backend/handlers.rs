@@ -58,3 +58,17 @@ pub async fn list_sessions_handler(State(pool): State<SqlitePool>) -> impl IntoR
         }
     }
 }
+
+pub async fn delete_session_handler(
+    State(pool): State<SqlitePool>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    match crate::database::sessions::delete_session(&pool, id).await {
+        Ok(()) => StatusCode::NO_CONTENT,
+        Err(sqlx::Error::RowNotFound) => StatusCode::NOT_FOUND,
+        Err(e) => {
+            tracing::error!("Failed to delete session: {}", e);
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
+    }
+}

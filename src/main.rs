@@ -1,10 +1,10 @@
 use crate::backend::handlers::{
-    create_session_handler, get_session_handler, list_sessions_handler,
+    create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
 };
 use axum::{
     Router,
     response::Html,
-    routing::{get, post},
+    routing::{delete, get, post},
 };
 use sqlx::sqlite::SqlitePoolOptions;
 use std::net::SocketAddr;
@@ -42,6 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/sessions", get(list_sessions_handler))
         .route("/api/sessions", post(create_session_handler))
         .route("/api/sessions/{:id}", get(get_session_handler))
+        .route("/api/sessions/{:id}", delete(delete_session_handler))
         .route("/", get(|| home_page()))
         .with_state(pool)
         .layer(TraceLayer::new_for_http());

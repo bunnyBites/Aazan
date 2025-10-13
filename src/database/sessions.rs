@@ -98,3 +98,23 @@ pub async fn list_sessions(pool: &SqlitePool) -> Result<Vec<Session>, sqlx::Erro
     let sessions = sessions.map_err(|_| sqlx::Error::RowNotFound)?;
     Ok(sessions)
 }
+
+pub async fn delete_session(pool: &SqlitePool, id: Uuid) -> Result<(), sqlx::Error> {
+    let id_str = id.to_string();
+    let result = sqlx::query!(
+        r#"
+        DELETE FROM sessions
+        WHERE id = $1
+        "#,
+        id_str,
+    )
+    .execute(pool)
+    .await?;
+
+    if result.rows_affected() == 0 {
+        // if no rows were deleted, the ID was not found
+        Err(sqlx::Error::RowNotFound)
+    } else {
+        Ok(())
+    }
+}
