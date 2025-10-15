@@ -14,6 +14,7 @@ index_on_404 = true
 [web.resource]
 style = []
 
-[web.proxy]
 [[web.proxy]]
 backend = "http://localhost:3000/api"
+
+[web.resource.dev]
