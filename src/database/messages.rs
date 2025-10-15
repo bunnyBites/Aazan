@@ -1,5 +1,5 @@
-use crate::models::message::{CreateMessage, Message};
-use chrono::Utc;
+use crate::models::message::{CreateMessage, Message, MessageRole};
+use chrono::{DateTime, Utc};
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
@@ -11,7 +11,10 @@ pub async fn create_message(
 ) -> Result<Message, sqlx::Error> {
     let id = Uuid::new_v4().to_string();
     let session_id_str = session_id.to_string();
-    let role_str = format!("{:?}", new_message.role);
+    let role_str = match new_message.role {
+        MessageRole::User => "User".to_string(),
+        MessageRole::Assistant => "Assistant".to_string(),
+    };
     let timestamp_str = Utc::now().to_rfc3339();
 
     let message = sqlx::query!(
@@ -60,8 +63,22 @@ pub async fn list_messages_for_session(
 
     let mut messages = Vec::new();
     for row in rows {
-        let message =
-            Message::from_query_row(row.id, row.session_id, row.role, row.content, row.timestamp)?;
+        let message = Message {
+            id: Uuid::parse_str(&row.id.unwrap()).map_err(|e| sqlx::Error::Decode(Box::new(e)))?,
+            session_id: Uuid::parse_str(&row.session_id)
+                .map_err(|e| sqlx::Error::Decode(Box::new(e)))?,
+            role: row.role.parse().map_err(|e: String| {
+                sqlx::Error::Decode(Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    e,
+                )))
+            })?,
+            content: row.content,
+            timestamp: row
+                .timestamp
+                .parse::<DateTime<Utc>>()
+                .map_err(|e| sqlx::Error::Decode(Box::new(e)))?,
+        };
         messages.push(message);
     }
 

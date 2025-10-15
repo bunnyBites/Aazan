@@ -13,7 +13,7 @@ pub async fn call_gemini_api(
 ) -> Result<String, anyhow::Error> {
     let api_key = env::var("GEMINI_API_KEY").expect("GEMINI_API_KEY must be set");
     let api_url =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     let client = Client::new();
 

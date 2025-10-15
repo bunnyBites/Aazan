@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .init();
 
-    // Connect to the SQLite database
+    // connect to the SQLite database
     let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
