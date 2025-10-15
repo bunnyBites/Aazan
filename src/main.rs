@@ -4,6 +4,7 @@ use crate::backend::{
         create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
         upload_session_handler,
     },
+    stream_handlers::sse_handler,
 };
 use axum::{
     Router,
@@ -48,6 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/sessions/upload", post(upload_session_handler))
         .route("/api/sessions/{:id}", get(get_session_handler))
         .route("/api/sessions/{:id}", delete(delete_session_handler))
+        .route("/api/sessions/{:id}/stream", get(sse_handler))
         // nested message routes
         .route(
             "/api/sessions/{:id}/messages",
