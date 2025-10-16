@@ -1,15 +1,17 @@
 #![allow(non_snake_case)]
 use dioxus::prelude::*;
 
+use crate::pages::chat_interface::ChatInterface;
+
+mod components;
+mod pages;
+
 fn main() {
-    // This tells Dioxus to launch the App component in the browser
     launch(App);
 }
 
 fn App() -> Element {
     rsx! {
-        div {
-            h1 { "Hello, Aazan Frontend!" }
-        }
+        ChatInterface {}
     }
 }
