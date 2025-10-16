@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-// These structs must match the JSON structure from our backend API.
-// We can redefine them here or later move them to a shared crate.
+// these structs must match the JSON structure from our backend API.
+// we can redefine them here or later move them to a shared crate.
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum MessageRole {
@@ -22,4 +22,10 @@ pub struct Message {
     pub role: MessageRole,
     pub content: String,
     pub timestamp: DateTime<Utc>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct CreateMessage {
+    pub role: MessageRole,
+    pub content: String,
 }
