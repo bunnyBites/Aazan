@@ -8,12 +8,16 @@ use crate::handlers::{
 };
 use axum::{
     Router,
+    http::HeaderValue,
     response::Html,
     routing::{delete, get, post},
 };
 use sqlx::sqlite::SqlitePoolOptions;
 use std::net::SocketAddr;
-use tower_http::trace::TraceLayer;
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::TraceLayer,
+};
 use tracing_subscriber::{self, layer::SubscriberExt, util::SubscriberInitExt};
 
 mod database;
@@ -43,6 +47,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing::info!("Database connection pool created.");
 
+    let cors = CorsLayer::new()
+        .allow_origin("http://127.0.0.1:8081".parse::<HeaderValue>().unwrap()) // Your frontend's origin
+        .allow_methods(Any) // Allow all methods (GET, POST, etc.)
+        .allow_headers(Any);
+
     let app = Router::new()
         .route("/api/sessions", get(list_sessions_handler))
         .route("/api/sessions", post(create_session_handler))
@@ -57,7 +66,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .route("/", get(|| home_page()))
         .with_state(pool)
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .layer(cors);
 
     // Run the server
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
