@@ -11,7 +11,7 @@ use std::convert::Infallible;
 use uuid::Uuid;
 
 use crate::{
-    backend::ai::{
+    handlers::ai::{
         client::stream_gemini_api,
         model::{Content, Part},
     },

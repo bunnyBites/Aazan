@@ -32,7 +32,7 @@ pub struct Candidate {
 #[serde(rename_all = "camelCase")]
 pub struct ContentResponse {
     pub parts: Vec<PartResponse>,
-    pub role: String,
+    pub _role: String,
 }
 
 #[derive(Deserialize)]

@@ -4,7 +4,7 @@ use futures_util::Stream;
 use reqwest::Client;
 use tokio_stream::StreamExt;
 
-use crate::backend::ai::{
+use crate::handlers::ai::{
     model::{Content, GeminiRequest, GeminiResponse, Part},
     prompt::CREATE_BODHI_PROMPT,
 };
@@ -14,7 +14,8 @@ pub async fn call_gemini_api(
     mut conversation_history: Vec<Content>,
 ) -> Result<String, anyhow::Error> {
     let api_key = env::var("GEMINI_API_KEY").expect("GEMINI_API_KEY must be set");
-    let api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent";
+    let api_url =
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     let client = Client::new();
 

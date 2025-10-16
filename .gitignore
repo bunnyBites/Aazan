@@ -27,9 +27,9 @@ target
 
 
 .env
-data/aazan.db
-data/aazan.db-shm
-data/aazan.db-wal
+backend/data/aazan.db
+backend/data/aazan.db-shm
+backend/data/aazan.db-wal
 /dist
 node_modules/
 aazan_dev_prompt.md

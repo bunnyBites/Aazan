@@ -7,7 +7,7 @@ title = "Aazan - Learn by Teaching"
 base_path = "/"
 
 [web.watcher]
-watch_path = ["src", "assets"]
+watch_path = ["src/frontend", "assets"]
 reload_html = true
 index_on_404 = true
 

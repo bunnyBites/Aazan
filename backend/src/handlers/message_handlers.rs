@@ -8,7 +8,7 @@ use sqlx::SqlitePool;
 use uuid::Uuid;
 
 use crate::{
-    backend::ai::{
+    handlers::ai::{
         client::call_gemini_api,
         model::{Content, Part},
     },

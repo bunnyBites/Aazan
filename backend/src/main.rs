@@ -1,4 +1,4 @@
-use crate::backend::{
+use crate::handlers::{
     message_handlers::{create_message_handler, list_messages_handler},
     session_handlers::{
         create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
@@ -16,8 +16,8 @@ use std::net::SocketAddr;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{self, layer::SubscriberExt, util::SubscriberInitExt};
 
-mod backend;
 mod database;
+mod handlers;
 mod models;
 
 #[tokio::main]
