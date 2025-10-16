@@ -1,17 +1,7 @@
 #![allow(non_snake_case)]
 use dioxus::prelude::*;
 
-#[derive(PartialEq, Clone, Copy)]
-pub enum MessageRole {
-    User,
-    Assistant,
-}
-
-#[derive(Props, PartialEq, Clone)]
-pub struct MessageBubbleProps {
-    pub text: String,
-    pub role: MessageRole,
-}
+use crate::models::message_bubble::{MessageBubbleProps, MessageRole};
 
 pub fn MessageBubble(props: MessageBubbleProps) -> Element {
     let (bubble_class, text_class) = match props.role {
