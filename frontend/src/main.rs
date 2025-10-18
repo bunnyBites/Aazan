@@ -15,7 +15,8 @@ fn main() {
 #[component]
 fn App() -> Element {
     rsx! {
-      Stylesheet { href: asset!("assets/tailwind.css") }
+      Stylesheet { href: asset!("assets/output.css") }
+
       ChatInterface {}
     }
 }
