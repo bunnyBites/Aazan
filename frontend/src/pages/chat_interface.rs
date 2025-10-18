@@ -40,19 +40,24 @@ pub fn ChatInterface() -> Element {
             // message list area
             main { class: "flex-1 overflow-y-auto p-4",
                 div { class: "flex flex-col space-y-4",
-                    // 4. Handle the different states of the resource
+                    // handle the different states of the resource
                     match &*messages.read() {
-                        Some(Ok(message_list)) => rsx! {
-                            {message_list.iter().map(|message| {
-                                // We need to convert the API Role to the View Role
-                                let view_role = match message.role {
-                                    ApiMessageRole::User => ViewMessageRole::User,
-                                    ApiMessageRole::Assistant => ViewMessageRole::Assistant,
-                                };
-                                rsx! {
-                                    MessageBubble { text: message.content.clone(), role: view_role }
-                                }
-                            })}
+                        Some(Ok(message_list)) => {
+                            rsx! {
+                                {message_list.iter().map(|message| {
+                                    let view_role = match message.role {
+                                        ApiMessageRole::User => ViewMessageRole::User,
+                                        ApiMessageRole::Assistant => ViewMessageRole::Assistant,
+                                    };
+                                    rsx! {
+                                        MessageBubble {
+                                            key: "{message.id}",
+                                            text: message.content.clone(),
+                                            role: view_role
+                                        }
+                                    }
+                                })}
+                            }
                         },
                         Some(Err(e)) => rsx! { p { "Error fetching messages: {e}" } },
                         None => rsx! { p { "Loading messages..." } },
@@ -75,7 +80,7 @@ pub fn ChatInterface() -> Element {
                         onclick: move |_| {
                                     if !new_message_text.read().is_empty() {
                                         sender.send(new_message_text.read().clone());
-                                        // Clear the input field
+                                        // clear the input field
                                         new_message_text.set("".to_string());
                                     }
                                 },

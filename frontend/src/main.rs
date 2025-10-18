@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use dioxus::prelude::*;
+use dioxus::{document::Stylesheet, prelude::*};
 
 use crate::pages::chat_interface::ChatInterface;
 
@@ -12,8 +12,10 @@ fn main() {
     launch(App);
 }
 
+#[component]
 fn App() -> Element {
     rsx! {
-        ChatInterface {}
+      Stylesheet { href: asset!("assets/tailwind.css") }
+      ChatInterface {}
     }
 }

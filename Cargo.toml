@@ -8,9 +8,13 @@ resolver = "2"
 [profile]
 
 [profile.release]
-opt-level = 3
+opt-level = "z"
+debug = false
 lto = true
 codegen-units = 1
+panic = "abort"
+strip = true
+incremental = false
 
 [profile.wasm-dev]
 inherits = "dev"
