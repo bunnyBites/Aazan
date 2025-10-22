@@ -12,6 +12,7 @@ use axum::{
     response::Html,
     routing::{delete, get, post},
 };
+use reqwest::Method;
 use sqlx::sqlite::SqlitePoolOptions;
 use std::net::SocketAddr;
 use tower_http::{
@@ -48,8 +49,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!("Database connection pool created.");
 
     let cors = CorsLayer::new()
-        .allow_origin("http://127.0.0.1:8081".parse::<HeaderValue>().unwrap()) // Your frontend's origin
-        .allow_methods(Any) // Allow all methods (GET, POST, etc.)
+        .allow_origin([
+            "http://127.0.0.1:8081".parse::<HeaderValue>().unwrap(),
+            "http://localhost:8081".parse::<HeaderValue>().unwrap(),
+        ])
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(Any);
 
     let app = Router::new()
@@ -73,7 +77,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::info!("Server listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app.into_make_service()).await?;
 
     Ok(())
 }
