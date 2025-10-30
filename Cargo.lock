@@ -1205,10 +1205,12 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "dioxus",
+ "futures",
  "futures-channel",
  "futures-util",
  "reqwest",
  "serde",
+ "serde_json",
  "tracing",
  "uuid",
  "wasm-logger",

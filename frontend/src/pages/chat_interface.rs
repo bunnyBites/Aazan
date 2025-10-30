@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 use dioxus::prelude::*;
 use futures_channel::mpsc::UnboundedReceiver;
-use futures_util::StreamExt;
+use futures_util::{FutureExt, StreamExt};
+use serde_json::Value;
 use uuid::Uuid;
 
 use crate::components::microphone_button::MicrophoneButton;
@@ -13,11 +14,15 @@ use crate::{
     models::message_bubble::MessageRole as ViewMessageRole,
 };
 
+enum SpeechAction {
+    Start,
+    Stop,
+}
+
 pub fn ChatInterface() -> Element {
     let mut new_message_text = use_signal(String::new);
     let session_id = Uuid::parse_str("urn:uuid:b9d36136-3fd5-4f92-a015-3f9ec68aec85").unwrap();
     let messages = use_resource(move || get_messages(session_id));
-    let mut speech_eval = use_signal(|| None::<document::Eval>);
 
     let sender = use_coroutine(move |mut rx| {
         let mut messages = messages.clone();
@@ -30,70 +35,70 @@ pub fn ChatInterface() -> Element {
         }
     });
 
-    let _from_js = use_coroutine(move |mut rx: UnboundedReceiver<String>| {
-        let mut new_message_text = new_message_text.clone();
+    let speech_manager = use_coroutine(move |mut rx: UnboundedReceiver<SpeechAction>| {
+        let sender = sender.clone();
 
         async move {
-            while let Some(js_message) = rx.next().await {
-                tracing::info!("Got text from JS: {}", js_message);
+            let mut evaluator = document::eval(
+                r#"
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    if (!SpeechRecognition) {
+                        dioxus.send("Error: Speech recognition not supported.");
+                    } else {
+                        const recognition = new SpeechRecognition();
+                        recognition.continuous = false;
+                        recognition.interimResults = false;
+                        recognition.lang = 'en-US';
 
-                if !js_message.is_empty() && !js_message.starts_with("Error") {
-                    new_message_text.set(js_message);
-                } else if js_message.starts_with("Error") {
-                    tracing::error!("JS Speech Error: {}", js_message);
+                        recognition.onresult = (event) => {
+                            const text = event.results[0][0].transcript;
+                            dioxus.send(text); // Send transcribed text
+                        };
+
+                        recognition.onerror = (event) => {
+                            dioxus.send("Error: " + event.error);
+                        };
+
+                        (async () => {
+                            while(true) {
+                                const msg = await dioxus.recv(); // Wait for "start" or "stop"
+                                if (msg === "start") {
+                                    try { recognition.start(); } catch(e) { console.error(e); }
+                                } else if (msg === "stop") {
+                                    try { recognition.stop(); } catch(e) { console.error(e); }
+                                }
+                            }
+                        })();
+                    }
+                "#,
+            );
+
+            loop {
+                futures::select! {
+                    // 4. Listen for commands from our Rust UI (the button)
+                    msg = rx.next().fuse() => {
+                        if let Some(action) = msg {
+                            match action {
+                                SpeechAction::Start => evaluator.send("start").ok(),
+                                SpeechAction::Stop => evaluator.send("stop").ok(),
+                            };
+                        }
+                    },
+
+                    // 5. Listen for messages from our JavaScript evaluator
+                    js_msg = evaluator.recv().fuse() => {
+                        if let Ok(Value::String(text)) = js_msg {
+                            if !text.is_empty() && !text.starts_with("Error") {
+                                tracing::info!("Got text from JS: {}", text);
+                                sender.send(text); // Forward to the backend
+                            } else if text.starts_with("Error") {
+                                tracing::error!("JS Speech Error: {}", text);
+                            }
+                        }
+                    }
                 }
             }
         }
-    });
-
-    use_effect(move || {
-        let evaluator = document::eval(
-            r#"
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (!SpeechRecognition) {
-                    console.error("SpeechRecognition API not supported in this browser.");
-                    dioxus.send("Error: Speech recognition not supported.");
-                } else {
-                    const recognition = new SpeechRecognition();
-                    recognition.continuous = false;
-                    recognition.interimResults = false;
-                    recognition.lang = 'en-US';
-
-                    recognition.onresult = (event) => {
-                        const text = event.results[0][0].transcript;
-                        console.log('Speech result:', text);
-                        dioxus.send(text); // Send transcribed text to `from_js` coroutine
-                    };
-
-                    recognition.onerror = (event) => {
-                        console.error('Speech recognition error:', event.error);
-                        dioxus.send("Error during recognition: " + event.error);
-                    };
-
-                    (async () => {
-                        while(true) {
-                            const msg = await dioxus.recv(); // Wait for "start" or "stop"
-                            if (msg === "start") {
-                                try {
-                                    console.log("Starting speech recognition...");
-                                    recognition.start();
-                                } catch(e) {
-                                    console.error("Error starting recognition:", e);
-                                }
-                            } else if (msg === "stop") {
-                                try {
-                                    console.log("Stopping speech recognition...");
-                                    recognition.stop();
-                                } catch(e) {
-                                    console.error("Error stopping recognition:", e);
-                                }
-                            }
-                        }
-                    })();
-                }
-            "#,
-        );
-        speech_eval.set(Some(evaluator));
     });
 
     rsx! {
@@ -149,15 +154,13 @@ pub fn ChatInterface() -> Element {
                         "Send"
                     }
                     MicrophoneButton {
-                        on_click: move |is_recording| {
-                            if let Some(evaluator) = speech_eval.read().as_ref() {
-                                if is_recording {
-                                    evaluator.send("start").ok();
-                                } else {
-                                    evaluator.send("stop").ok();
-                                }
-                            }
-                        }
+                      on_click: move |is_recording| {
+                          if is_recording {
+                              speech_manager.send(SpeechAction::Start);
+                          } else {
+                              speech_manager.send(SpeechAction::Stop);
+                          }
+                      }
                     }
                 }
             }
