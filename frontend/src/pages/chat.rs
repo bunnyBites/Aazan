@@ -25,19 +25,24 @@ pub struct ChatProps {
 }
 
 pub fn Chat(props: ChatProps) -> Element {
-    let session_id = props.id;
-
     let mut new_message_text = use_signal(String::new);
 
-    let messages = use_resource(move || get_messages(session_id));
+    let messages = use_resource({
+        let session_id = props.id;
+        move || async move { get_messages(session_id).await }
+    });
 
-    let sender = use_coroutine(move |mut rx: UnboundedReceiver<String>| {
-        let mut messages = messages.clone();
-        async move {
-            while let Some(content) = rx.next().await {
-                // We know we have a valid session_id, no need to check
-                if let Ok(_new_messages) = send_message(session_id, content).await {
-                    messages.restart();
+    let sender = use_coroutine({
+        let session_id = props.id;
+        move |mut rx: UnboundedReceiver<String>| {
+            let mut messages = messages.clone();
+            let session_id = session_id;
+
+            async move {
+                while let Some(content) = rx.next().await {
+                    if let Ok(_new_messages) = send_message(session_id, content).await {
+                        messages.restart();
+                    }
                 }
             }
         }
