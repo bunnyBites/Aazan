@@ -3,12 +3,12 @@ use dioxus::prelude::*;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::{FutureExt, StreamExt};
 use serde_json::Value;
+use uuid::Uuid;
 
 use crate::components::microphone_button::MicrophoneButton;
 use crate::controllers::api::get_messages;
 use crate::controllers::message_bubble::send_message;
 use crate::models::api::MessageRole as ApiMessageRole;
-use crate::models::chat::ChatProps;
 use crate::{
     components::message_bubble::MessageBubble,
     models::message_bubble::MessageRole as ViewMessageRole,
@@ -17,6 +17,11 @@ use crate::{
 enum SpeechAction {
     Start,
     Stop,
+}
+
+#[derive(Props, PartialEq, Clone)]
+pub struct ChatProps {
+    pub id: Uuid,
 }
 
 pub fn Chat(props: ChatProps) -> Element {
