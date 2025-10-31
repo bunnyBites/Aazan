@@ -102,7 +102,7 @@ pub fn ChatInterface() -> Element {
     });
 
     rsx! {
-        div { class: "flex flex-col h-screen bg-gray-100",
+        div { class: "flex flex-col h-full‸ bg-gray-100 flex-1",
             header { class: "bg-white shadow-md p-4",
                 h1 { class: "text-2xl font-bold text-gray-800", "Aazan Chat" }
             }

@@ -29,3 +29,11 @@ pub struct CreateMessage {
     pub role: MessageRole,
     pub content: String,
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Session {
+    #[serde(with = "uuid::serde::urn")]
+    pub id: Uuid,
+    pub topic: String,
+    pub updated_at: DateTime<Utc>,
+}
