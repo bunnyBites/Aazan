@@ -5,6 +5,7 @@ use futures_util::{FutureExt, StreamExt};
 use serde_json::Value;
 use uuid::Uuid;
 
+use crate::components::loading_spinner::LoadingSpinner;
 use crate::components::microphone_button::MicrophoneButton;
 use crate::controllers::api::get_messages;
 use crate::controllers::message_bubble::send_message;
@@ -31,6 +32,8 @@ pub fn Chat(props: ChatProps) -> Element {
         let session_id = props.id;
         move || async move { get_messages(session_id).await }
     });
+
+    let is_loading = use_memo(move || messages.read().is_none());
 
     let sender = use_coroutine({
         let session_id = props.id;
@@ -124,24 +127,32 @@ pub fn Chat(props: ChatProps) -> Element {
                 div { class: "flex flex-col space-y-4",
                     match &*messages.read() {
                         Some(Ok(message_list)) => {
+                          if message_list.is_empty() {
                             rsx! {
-                                {message_list.iter().map(|message| {
-                                    let view_role = match message.role {
-                                        ApiMessageRole::User => ViewMessageRole::User,
-                                        ApiMessageRole::Assistant => ViewMessageRole::Assistant,
-                                    };
-                                    rsx! {
-                                        MessageBubble {
-                                            key: "{message.id}",
-                                            text: message.content.clone(),
-                                            role: view_role
-                                        }
-                                    }
-                                })}
+                                div { class: "flex-1 flex justify-center items-center",
+                                    p { class: "text-gray-500", "No messages yet. Start the lesson!" }
+                                }
                             }
+                            } else {
+                              rsx! {
+                                  {message_list.iter().map(|message| {
+                                      let view_role = match message.role {
+                                          ApiMessageRole::User => ViewMessageRole::User,
+                                          ApiMessageRole::Assistant => ViewMessageRole::Assistant,
+                                      };
+                                      rsx! {
+                                          MessageBubble {
+                                              key: "{message.id}",
+                                              text: message.content.clone(),
+                                              role: view_role
+                                          }
+                                      }
+                                  })}
+                              }
+                          }
                         },
                         Some(Err(e)) => rsx! { p { "Error fetching messages: {e}" } },
-                        None => rsx! { p { "Loading messages..." } },
+                        None => rsx! { LoadingSpinner {} },
                     }
                 }
             }
@@ -150,14 +161,16 @@ pub fn Chat(props: ChatProps) -> Element {
                 class: "bg-white p-4 shadow-inner",
                 div { class: "flex items-center",
                     input {
-                        class: "flex-1 border rounded-full py-2 px-4 mr-4",
-                        placeholder: "Teach your lesson here...",
+                        class: "flex-1 border rounded-full py-2 px-4 mr-4 disabled:bg-gray-100",
+                        placeholder: if is_loading() { "Loading..." } else { "Teach your lesson here..." },
                         r#type: "text",
                         value: "{new_message_text}",
                         oninput: move |event| new_message_text.set(event.value().clone()),
+                        disabled: is_loading(),
                     }
                     button {
-                        class: "h-25 w-25 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors mr-4",
+                        class: "h-25 w-25 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors mr-4 disabled:opacity-50",
+                        disabled: is_loading(),
                         onclick: move |_| {
                             if !new_message_text.read().is_empty() {
                                 sender.send(new_message_text.read().clone());
@@ -187,6 +200,7 @@ pub fn Chat(props: ChatProps) -> Element {
                         }
                     }
                     MicrophoneButton {
+                      disabled: is_loading(),
                       on_click: move |is_recording| {
                           if is_recording {
                               speech_manager.send(SpeechAction::Start);
