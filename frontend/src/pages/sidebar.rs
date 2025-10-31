@@ -39,7 +39,7 @@ pub fn Sidebar() -> Element {
           // footer
           footer { class: "p-4 border-t border-gray-200",
                     button {
-                        class: "w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700",
+                        class: "w-full bg-indigo-600 text-white py-2 px-5 rounded-lg hover:bg-indigo-700",
                         "New Lesson"
                     }
                 }

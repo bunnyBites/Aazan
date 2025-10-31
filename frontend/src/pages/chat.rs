@@ -3,12 +3,12 @@ use dioxus::prelude::*;
 use futures_channel::mpsc::UnboundedReceiver;
 use futures_util::{FutureExt, StreamExt};
 use serde_json::Value;
-use uuid::Uuid;
 
 use crate::components::microphone_button::MicrophoneButton;
 use crate::controllers::api::get_messages;
 use crate::controllers::message_bubble::send_message;
 use crate::models::api::MessageRole as ApiMessageRole;
+use crate::models::chat::ChatProps;
 use crate::{
     components::message_bubble::MessageBubble,
     models::message_bubble::MessageRole as ViewMessageRole,
@@ -19,15 +19,18 @@ enum SpeechAction {
     Stop,
 }
 
-pub fn ChatInterface() -> Element {
+pub fn Chat(props: ChatProps) -> Element {
+    let session_id = props.id;
+
     let mut new_message_text = use_signal(String::new);
-    let session_id = Uuid::parse_str("urn:uuid:b9d36136-3fd5-4f92-a015-3f9ec68aec85").unwrap();
+
     let messages = use_resource(move || get_messages(session_id));
 
-    let sender = use_coroutine(move |mut rx| {
+    let sender = use_coroutine(move |mut rx: UnboundedReceiver<String>| {
         let mut messages = messages.clone();
         async move {
             while let Some(content) = rx.next().await {
+                // We know we have a valid session_id, no need to check
                 if let Ok(_new_messages) = send_message(session_id, content).await {
                     messages.restart();
                 }
@@ -151,7 +154,7 @@ pub fn ChatInterface() -> Element {
                                 new_message_text.set(String::new());
                             }
                         },
-                        // Send icon
+                        // send icon
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
                             width: "30",

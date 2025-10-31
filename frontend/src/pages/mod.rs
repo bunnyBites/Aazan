@@ -1,2 +1,2 @@
-pub mod chat_interface;
+pub mod chat;
 pub mod sidebar;
