@@ -20,7 +20,7 @@ pub fn MicrophoneButton(props: MicrophoneButtonProps) -> Element {
 
     rsx! {
         button {
-            class: "w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg transition-colors {button_class} hover:bg-indigo-700",
+            class: "w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg transition-colors {button_class} hover:bg-indigo-700",
             // onclick handler toggles the recording state
             onclick: move |_| {
                 let new_state = !is_recording();
@@ -31,8 +31,8 @@ pub fn MicrophoneButton(props: MicrophoneButtonProps) -> Element {
             // icon for the microphone
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
-                width: "28",
-                height: "28",
+                width: "32",
+                height: "32",
                 view_box: "0 0 24 24",
                 fill: "none",
                 stroke: "{icon_color}",

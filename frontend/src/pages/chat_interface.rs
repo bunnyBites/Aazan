@@ -75,7 +75,7 @@ pub fn ChatInterface() -> Element {
 
             loop {
                 futures::select! {
-                    // 4. Listen for commands from our Rust UI (the button)
+                    // listen for commands from our Rust UI (the button)
                     msg = rx.next().fuse() => {
                         if let Some(action) = msg {
                             match action {
@@ -85,12 +85,12 @@ pub fn ChatInterface() -> Element {
                         }
                     },
 
-                    // 5. Listen for messages from our JavaScript evaluator
+                    // listen for messages from our JavaScript evaluator
                     js_msg = evaluator.recv().fuse() => {
                         if let Ok(Value::String(text)) = js_msg {
                             if !text.is_empty() && !text.starts_with("Error") {
                                 tracing::info!("Got text from JS: {}", text);
-                                sender.send(text); // Forward to the backend
+                                sender.send(text); // forward to the backend
                             } else if text.starts_with("Error") {
                                 tracing::error!("JS Speech Error: {}", text);
                             }
@@ -144,14 +144,34 @@ pub fn ChatInterface() -> Element {
                         oninput: move |event| new_message_text.set(event.value().clone()),
                     }
                     button {
-                        class: "bg-indigo-600 text-white rounded-full p-3 hover:bg-indigo-700",
+                        class: "h-25 w-25 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors mr-4",
                         onclick: move |_| {
                             if !new_message_text.read().is_empty() {
                                 sender.send(new_message_text.read().clone());
                                 new_message_text.set(String::new());
                             }
                         },
-                        "Send"
+                        // Send icon
+                        svg {
+                            xmlns: "http://www.w3.org/2000/svg",
+                            width: "30",
+                            height: "32",
+                            view_box: "0 0 24 24",
+                            fill: "none",
+                            stroke: "indigo",
+                            stroke_width: "2",
+                            stroke_linecap: "round",
+                            stroke_linejoin: "round",
+                            line {
+                                x1: "22",
+                                y1: "2",
+                                x2: "11",
+                                y2: "13"
+                            }
+                            polygon {
+                                points: "22 2 15 22 11 13 2 9 22 2"
+                            }
+                        }
                     }
                     MicrophoneButton {
                       on_click: move |is_recording| {
