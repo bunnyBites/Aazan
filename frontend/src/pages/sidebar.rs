@@ -1,10 +1,21 @@
 #![allow(non_snake_case)]
 use dioxus::prelude::*;
 
-use crate::{components::session_item::SessionItem, controllers::api::list_sessions};
+use crate::{components::session_item::SessionItem, controllers::api::list_sessions, Route};
 
 pub fn Sidebar() -> Element {
     let sessions = use_resource(list_sessions);
+    let route = use_route::<Route>();
+
+    let is_session_active = move |session_id: uuid::Uuid| {
+        if let Route::Chat { id: active_id } = route {
+            let is_active = session_id == active_id;
+
+            is_active
+        } else {
+            false
+        }
+    };
 
     rsx! {
         nav { class: "w-80 bg-white border-r border-gray-200 flex flex-col shadow-lg",
@@ -20,12 +31,13 @@ pub fn Sidebar() -> Element {
                 match &*sessions.read() {
                   Some(Ok(session_list)) => rsx! {
                       for session in session_list {
-                          SessionItem {
-                              key: "{session.id}",
-                              id: session.id,
-                              title: session.topic.clone(),
-                              last_updated: session.updated_at.format("%Y-%m-%d").to_string(),
-                          }
+                        SessionItem {
+                            key: "{session.id}",
+                            id: session.id,
+                            title: session.topic.clone(),
+                            last_updated: session.updated_at.format("%Y-%m-%d").to_string(),
+                            is_active: is_session_active(session.id),
+                        }
                       }
                     },
                     Some(Err(e)) => rsx! {

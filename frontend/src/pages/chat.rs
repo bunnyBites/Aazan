@@ -169,7 +169,7 @@ pub fn Chat(props: ChatProps) -> Element {
                         disabled: is_loading(),
                     }
                     button {
-                        class: "h-25 w-25 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors mr-4 disabled:opacity-50",
+                        class: "w-10 h-10 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors mr-4 disabled:opacity-50",
                         disabled: is_loading(),
                         onclick: move |_| {
                             if !new_message_text.read().is_empty() {
@@ -180,8 +180,8 @@ pub fn Chat(props: ChatProps) -> Element {
                         // send icon
                         svg {
                             xmlns: "http://www.w3.org/2000/svg",
-                            width: "30",
-                            height: "32",
+                            width: "24",
+                            height: "24",
                             view_box: "0 0 24 24",
                             fill: "none",
                             stroke: "indigo",
