@@ -117,43 +117,64 @@ pub fn Chat(props: ChatProps) -> Element {
         }
     });
 
+    use_effect(move || {
+        // We only want to scroll if the messages have successfully loaded
+        if let Some(Ok(message_list)) = &*messages.read() {
+            // And only if there are messages to scroll to
+            if !message_list.is_empty() {
+                // This runs a tiny bit of JS to scroll the div with id "message-list"
+                // to its maximum height, showing the newest message.
+                document::eval(
+                    r#"
+                        let el = document.getElementById("message-list");
+                        if (el) {
+                            el.scrollTop = el.scrollHeight;
+                        }
+                    "#,
+                );
+            }
+        }
+    });
+
     rsx! {
         div { class: "flex flex-col h-full‸ bg-gray-100 flex-1",
             header { class: "bg-white shadow-md p-4",
                 h1 { class: "text-2xl font-bold text-gray-800", "Aazan Chat" }
             }
 
-            main { class: "flex-1 overflow-y-auto p-4",
-                div { class: "flex flex-col space-y-4",
-                    match &*messages.read() {
-                        Some(Ok(message_list)) => {
-                          if message_list.is_empty() {
-                            rsx! {
-                                div { class: "flex-1 flex justify-center items-center",
-                                    p { class: "text-gray-500", "No messages yet. Start the lesson!" }
-                                }
-                            }
-                            } else {
-                              rsx! {
-                                  {message_list.iter().map(|message| {
-                                      let view_role = match message.role {
-                                          ApiMessageRole::User => ViewMessageRole::User,
-                                          ApiMessageRole::Assistant => ViewMessageRole::Assistant,
-                                      };
-                                      rsx! {
-                                          MessageBubble {
-                                              key: "{message.id}",
-                                              text: message.content.clone(),
-                                              role: view_role
-                                          }
-                                      }
-                                  })}
+            main {
+              class: "flex-1 overflow-y-auto p-4",
+              id: "message-list",
+              div { class: "flex flex-col space-y-4",
+                  match &*messages.read() {
+                      Some(Ok(message_list)) => {
+                        if message_list.is_empty() {
+                          rsx! {
+                              div { class: "flex-1 flex justify-center items-center",
+                                  p { class: "text-gray-500", "No messages yet. Start the lesson!" }
                               }
                           }
-                        },
-                        Some(Err(e)) => rsx! { p { "Error fetching messages: {e}" } },
-                        None => rsx! { LoadingSpinner {} },
-                    }
+                          } else {
+                            rsx! {
+                                {message_list.iter().map(|message| {
+                                    let view_role = match message.role {
+                                        ApiMessageRole::User => ViewMessageRole::User,
+                                        ApiMessageRole::Assistant => ViewMessageRole::Assistant,
+                                    };
+                                    rsx! {
+                                        MessageBubble {
+                                            key: "{message.id}",
+                                            text: message.content.clone(),
+                                            role: view_role
+                                        }
+                                    }
+                                })}
+                            }
+                        }
+                      },
+                      Some(Err(e)) => rsx! { p { "Error fetching messages: {e}" } },
+                      None => rsx! { LoadingSpinner {} },
+                  }
                 }
             }
 
