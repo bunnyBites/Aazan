@@ -4,6 +4,7 @@ use dioxus::prelude::*;
 #[derive(Props, PartialEq, Clone)]
 pub struct MicrophoneButtonProps {
     pub on_click: EventHandler<bool>,
+    disabled: bool,
 }
 
 pub fn MicrophoneButton(props: MicrophoneButtonProps) -> Element {
@@ -20,7 +21,8 @@ pub fn MicrophoneButton(props: MicrophoneButtonProps) -> Element {
 
     rsx! {
         button {
-            class: "w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg transition-colors {button_class} hover:bg-indigo-700",
+            class: "w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg transition-colors {button_class} hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed",
+            disabled: props.disabled,
             // onclick handler toggles the recording state
             onclick: move |_| {
                 let new_state = !is_recording();
@@ -31,8 +33,8 @@ pub fn MicrophoneButton(props: MicrophoneButtonProps) -> Element {
             // icon for the microphone
             svg {
                 xmlns: "http://www.w3.org/2000/svg",
-                width: "32",
-                height: "32",
+                width: "24",
+                height: "24",
                 view_box: "0 0 24 24",
                 fill: "none",
                 stroke: "{icon_color}",
