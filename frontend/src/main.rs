@@ -1,7 +1,9 @@
 #![allow(non_snake_case)]
-use dioxus::{document::Stylesheet, prelude::*};
+use dioxus::document::Stylesheet;
+use dioxus::prelude::*;
 use uuid::Uuid;
 
+use crate::models::main::MobileMenuOpen;
 use crate::pages::chat::Chat;
 use crate::pages::sidebar::Sidebar;
 
@@ -34,12 +36,38 @@ fn App() -> Element {
 
 #[component]
 fn AppLayout() -> Element {
+    let mut is_menu_open = use_signal(|| false);
+    let close_menu = move || is_menu_open.set(false);
+
+    use_context_provider(|| MobileMenuOpen {
+        is_open: is_menu_open,
+    });
+
     rsx! {
       Stylesheet { href: asset!("assets/output.css") }
-      div { class: "flex h-screen",
-            Sidebar {}
-            Outlet::<Route> {}
-        }
+
+      div { class: "flex h-screen relative overflow-hidden",
+          div {
+              class: "absolute md:relative z-20 transition-transform duration-300",
+              class: "md:translate-x-0",
+
+              class: if is_menu_open() {
+                  "translate-x-0"
+              } else {
+                  "-translate-x-full"
+              },
+              Sidebar { on_close_menu: close_menu }
+          }
+
+          if is_menu_open() {
+              div {
+                  class: "absolute inset-0 bg-black/50 z-10 md:hidden",
+                  onclick: move |_| is_menu_open.set(false)
+              }
+          }
+
+          Outlet::<Route> {}
+      }
     }
 }
 

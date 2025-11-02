@@ -3,7 +3,12 @@ use dioxus::prelude::*;
 
 use crate::{components::session_item::SessionItem, controllers::api::list_sessions, Route};
 
-pub fn Sidebar() -> Element {
+#[derive(Props, PartialEq, Clone)]
+pub struct SidebarProps {
+    pub on_close_menu: EventHandler<()>,
+}
+
+pub fn Sidebar(props: SidebarProps) -> Element {
     let sessions = use_resource(list_sessions);
     let route = use_route::<Route>();
 
@@ -18,7 +23,7 @@ pub fn Sidebar() -> Element {
     };
 
     rsx! {
-        nav { class: "w-80 bg-white border-r border-gray-200 flex flex-col shadow-lg",
+        nav { class: "w-80 h-full bg-white border-r border-gray-200 flex flex-col shadow-lg",
 
           // header
           div { class: "p-4 border-b border-gray-200",
@@ -37,6 +42,7 @@ pub fn Sidebar() -> Element {
                             title: session.topic.clone(),
                             last_updated: session.updated_at.format("%Y-%m-%d").to_string(),
                             is_active: is_session_active(session.id),
+                            on_click: move |_| props.on_close_menu.call(()),
                         }
                       }
                     },
