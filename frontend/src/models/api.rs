@@ -37,3 +37,9 @@ pub struct Session {
     pub topic: String,
     pub updated_at: DateTime<Utc>,
 }
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct CreateSessionPayload {
+    pub topic: String,
+    pub material_text: String,
+}
