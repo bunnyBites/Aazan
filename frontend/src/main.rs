@@ -50,6 +50,8 @@ fn AppLayout() -> Element {
         is_open: is_menu_open,
     });
 
+    // Global keyboard shortcuts will be handled by the modal itself
+
     rsx! {
         Stylesheet { href: asset!("assets/output.css") }
 
@@ -78,7 +80,7 @@ fn AppLayout() -> Element {
                 Outlet::<Route> {}
             }
 
-            // Modal overlay - as direct child of outer container
+            // Modal overlay - using portal for better z-index handling
             if is_new_lesson_open() {
                 NewLessonModal {
                     on_close: move |_| is_new_lesson_open.set(false)
