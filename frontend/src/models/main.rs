@@ -4,3 +4,8 @@ use dioxus::signals::Signal;
 pub struct MobileMenuOpen {
     pub is_open: Signal<bool>,
 }
+
+#[derive(Clone, Copy)]
+pub struct NewLessonModalOpen {
+    pub is_open: Signal<bool>,
+}
