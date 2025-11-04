@@ -1,9 +1,13 @@
 #![allow(non_snake_case)]
-use dioxus::{document::Stylesheet, prelude::*};
+use dioxus::document::Stylesheet;
+use dioxus::prelude::*;
 use uuid::Uuid;
 
+use crate::models::main::{MobileMenuOpen, NewLessonModalOpen};
 use crate::pages::chat::Chat;
+use crate::pages::new_lesson_modal::NewLessonModal;
 use crate::pages::sidebar::Sidebar;
+use crate::pages::welcome::Welcome;
 
 mod components;
 mod controllers;
@@ -34,20 +38,54 @@ fn App() -> Element {
 
 #[component]
 fn AppLayout() -> Element {
-    rsx! {
-      Stylesheet { href: asset!("assets/output.css") }
-      div { class: "flex h-screen",
-            Sidebar {}
-            Outlet::<Route> {}
-        }
-    }
-}
+    let mut is_menu_open = use_signal(|| false);
+    let close_menu = move || is_menu_open.set(false);
+    let mut is_new_lesson_open = use_signal(|| false);
 
-#[component]
-fn Welcome() -> Element {
+    use_context_provider(|| NewLessonModalOpen {
+        is_open: is_new_lesson_open,
+    });
+
+    use_context_provider(|| MobileMenuOpen {
+        is_open: is_menu_open,
+    });
+
+    // Global keyboard shortcuts will be handled by the modal itself
+
     rsx! {
-        div { class: "flex-1 flex justify-center items-center bg-gray-100",
-            h1 { class: "text-2xl text-center text-gray-500", "Select a lesson to get started." }
+        Stylesheet { href: asset!("assets/output.css") }
+
+        div { class: "relative min-h-screen",
+            // Main application layout
+            div { class: "flex h-screen overflow-hidden",
+                div {
+                    class: "absolute md:relative transition-transform duration-300",
+                    class: "md:translate-x-0",
+
+                    class: if is_menu_open() {
+                        "translate-x-0"
+                    } else {
+                        "-translate-x-full"
+                    },
+                    Sidebar { on_close_menu: close_menu }
+                }
+
+                if is_menu_open() {
+                    div {
+                        class: "absolute inset-0 bg-black/50 z-10 md:hidden",
+                        onclick: move |_| is_menu_open.set(false)
+                    }
+                }
+
+                Outlet::<Route> {}
+            }
+
+            // Modal overlay - using portal for better z-index handling
+            if is_new_lesson_open() {
+                NewLessonModal {
+                    on_close: move |_| is_new_lesson_open.set(false)
+                }
+            }
         }
     }
 }

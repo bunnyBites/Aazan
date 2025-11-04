@@ -11,6 +11,7 @@ pub struct SessionItemProps {
     pub last_updated: String,
     #[props(default = false)]
     pub is_active: bool,
+    pub on_click: EventHandler<()>,
 }
 
 pub fn SessionItem(props: SessionItemProps) -> Element {
@@ -24,15 +25,19 @@ pub fn SessionItem(props: SessionItemProps) -> Element {
 
     rsx! {
       Link {
-        to: target_route,
-        div {
-            class: "p-4 cursor-pointer {active_class} border-b border-gray-200",
-            onclick: move |_| {
-                tracing::info!("Clicked on session: {}", props.title);
-            },
-            h3 { class: "font-semibold text-gray-800", "{props.title}" }
-            p { class: "text-sm text-gray-500", "{props.last_updated}" }
-        }
+          to: target_route,
+          div {
+              class: "p-4 cursor-pointer {active_class} border-b border-gray-200",
+              onclick: move |_| {
+                  props.on_click.call(());
+                  // Quick fix: Only refresh when switching to a different session (not the current one)
+                  if !props.is_active {
+                      dioxus::document::eval("setTimeout(() => window.location.reload(), 300);");
+                  }
+              },
+              h3 { class: "font-semibold text-gray-800", "{props.title}" }
+              p { class: "text-sm text-gray-500", "{props.last_updated}" }
+          }
       }
     }
 }

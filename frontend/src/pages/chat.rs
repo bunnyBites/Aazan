@@ -10,6 +10,7 @@ use crate::components::microphone_button::MicrophoneButton;
 use crate::controllers::api::get_messages;
 use crate::controllers::message_bubble::send_message;
 use crate::models::api::MessageRole as ApiMessageRole;
+use crate::models::main::MobileMenuOpen;
 use crate::{
     components::message_bubble::MessageBubble,
     models::message_bubble::MessageRole as ViewMessageRole,
@@ -27,6 +28,7 @@ pub struct ChatProps {
 
 pub fn Chat(props: ChatProps) -> Element {
     let mut new_message_text = use_signal(String::new);
+    let mut menu_state = use_context::<MobileMenuOpen>();
 
     let messages = use_resource({
         let session_id = props.id;
@@ -138,8 +140,28 @@ pub fn Chat(props: ChatProps) -> Element {
 
     rsx! {
         div { class: "flex flex-col h-full‸ bg-gray-100 flex-1",
-            header { class: "bg-white shadow-md p-4",
-                h1 { class: "text-2xl font-bold text-gray-800", "Aazan Chat" }
+            header { class: "bg-white shadow-md p-4 flex justify-between items-center",
+                h1 { class: "text-2xl font-bold text-gray-800", "Aazan Chat" },
+                button {
+                    class: "p-2 rounded-md hover:bg-gray-100 md:hidden",
+                    onclick: move |_| {
+                        menu_state.is_open.set(true);
+                    },
+                    svg {
+                        xmlns: "http://www.w3.org/2000/svg",
+                        width: "24",
+                        height: "24",
+                        view_box: "0 0 24 24",
+                        fill: "none",
+                        stroke: "currentColor",
+                        stroke_width: "2",
+                        stroke_linecap: "round",
+                        stroke_linejoin: "round",
+                        line { x1: "3", y1: "12", x2: "21", y2: "12" }
+                        line { x1: "3", y1: "6", x2: "21", y2: "6" }
+                        line { x1: "3", y1: "18", x2: "21", y2: "18" }
+                    }
+                }
             }
 
             main {
