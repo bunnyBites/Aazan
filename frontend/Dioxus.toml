@@ -4,16 +4,21 @@ default_platform = "web"
 
 [web.app]
 title = "Aazan - Learn by Teaching"
-base_path = "/"
+style = ["assets/output.css"]
 
 [web.watcher]
 watch_path = ["src", "assets"]
 reload_html = true
 index_on_404 = true
 
-[web.resource]
-style = []
+[[web.watcher.on_file_change]]
+pattern = "src/**/*.rs"
+command = "npx @tailwindcss/cli -i ./assets/input.css -o ./assets/output.css"
 
-[web.proxy]
+[web.resource]
+directory = "assets"
+
 [[web.proxy]]
 backend = "http://localhost:3000/api"
+
+[web.resource.dev]

@@ -14,7 +14,6 @@ pub async fn create_session_handler(
     match create_session(&pool, payload).await {
         Ok(session) => (StatusCode::CREATED, Json(session)).into_response(),
         Err(e) => {
-            // It's good practice to log the error
             tracing::error!("Failed to create session: {}", e);
             (
                 StatusCode::INTERNAL_SERVER_ERROR,

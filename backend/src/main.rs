@@ -1,19 +1,28 @@
-use crate::backend::handlers::{
-    create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
-    upload_session_handler,
+use crate::handlers::{
+    message_handlers::{create_message_handler, list_messages_handler},
+    session_handlers::{
+        create_session_handler, delete_session_handler, get_session_handler, list_sessions_handler,
+        upload_session_handler,
+    },
+    stream_handlers::sse_handler,
 };
 use axum::{
     Router,
+    http::HeaderValue,
     response::Html,
     routing::{delete, get, post},
 };
+use reqwest::Method;
 use sqlx::sqlite::SqlitePoolOptions;
 use std::net::SocketAddr;
-use tower_http::trace::TraceLayer;
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::TraceLayer,
+};
 use tracing_subscriber::{self, layer::SubscriberExt, util::SubscriberInitExt};
 
-mod backend;
 mod database;
+mod handlers;
 mod models;
 
 #[tokio::main]
@@ -29,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .init();
 
-    // Connect to the SQLite database
+    // connect to the SQLite database
     let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
@@ -39,21 +48,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing::info!("Database connection pool created.");
 
+    let cors = CorsLayer::new()
+        .allow_origin([
+            "http://127.0.0.1:8081".parse::<HeaderValue>().unwrap(),
+            "http://localhost:8081".parse::<HeaderValue>().unwrap(),
+        ])
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_headers(Any);
+
     let app = Router::new()
         .route("/api/sessions", get(list_sessions_handler))
         .route("/api/sessions", post(create_session_handler))
         .route("/api/sessions/upload", post(upload_session_handler))
         .route("/api/sessions/{:id}", get(get_session_handler))
         .route("/api/sessions/{:id}", delete(delete_session_handler))
+        .route("/api/sessions/{:id}/stream", get(sse_handler))
+        // nested message routes
+        .route(
+            "/api/sessions/{:id}/messages",
+            get(list_messages_handler).post(create_message_handler),
+        )
         .route("/", get(|| home_page()))
         .with_state(pool)
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .layer(cors);
 
     // Run the server
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::info!("Server listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app.into_make_service()).await?;
 
     Ok(())
 }

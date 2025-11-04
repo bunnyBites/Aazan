@@ -1,7 +1,8 @@
-use crate::models::session::{CreateSession, Session};
 use chrono::Utc;
 use sqlx::SqlitePool;
 use uuid::Uuid;
+
+use crate::models::session::{CreateSession, Session};
 
 pub async fn create_session(
     pool: &SqlitePool,
