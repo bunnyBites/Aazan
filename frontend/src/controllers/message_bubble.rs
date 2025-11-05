@@ -7,7 +7,7 @@ pub async fn send_message(
     content: String,
 ) -> Result<Vec<Message>, reqwest::Error> {
     let client = reqwest::Client::new();
-    let url = format!("http://localhost:3000/api/sessions/{}/messages", session_id);
+    let url = format!("/api/sessions/{}/messages", session_id);
 
     let payload = CreateMessage {
         role: MessageRole::User,

@@ -1,0 +1,56 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO sessions (id, topic, material_text, status, created_at, updated_at, user_id)\n        VALUES ($1, $2, $3, $4, $5, $6, $7)\n        RETURNING id, topic, material_text, status, created_at, updated_at, user_id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "topic",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "material_text",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "status",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "user_id",
+        "ordinal": 6,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "fe84caa03500c8d2c7cdd7f17875bcd24f30617fd90cc608feb1f56341d3f10b"
+}

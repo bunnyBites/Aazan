@@ -9,12 +9,12 @@ use crate::handlers::{
 use axum::{
     Router,
     http::HeaderValue,
-    response::Html,
     routing::{delete, get, post},
 };
 use reqwest::Method;
 use sqlx::sqlite::SqlitePoolOptions;
 use std::net::SocketAddr;
+use tower_http::services::ServeDir;
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
@@ -48,40 +48,48 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     tracing::info!("Database connection pool created.");
 
+    // Get allowed origins from environment variable or use defaults
+    let allowed_origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| {
+        "http://localhost:8081,http://127.0.0.1:8081,https://aazan-dry-pond-469.fly.dev".to_string()
+    });
+
+    let origins: Vec<HeaderValue> = allowed_origins
+        .split(',')
+        .filter_map(|s| s.trim().parse().ok())
+        .collect();
+
     let cors = CorsLayer::new()
-        .allow_origin([
-            "http://127.0.0.1:8081".parse::<HeaderValue>().unwrap(),
-            "http://localhost:8081".parse::<HeaderValue>().unwrap(),
-        ])
-        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_origin(origins)
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS, Method::DELETE])
         .allow_headers(Any);
 
-    let app = Router::new()
+    let routes = Router::new()
         .route("/api/sessions", get(list_sessions_handler))
         .route("/api/sessions", post(create_session_handler))
         .route("/api/sessions/upload", post(upload_session_handler))
         .route("/api/sessions/{:id}", get(get_session_handler))
         .route("/api/sessions/{:id}", delete(delete_session_handler))
         .route("/api/sessions/{:id}/stream", get(sse_handler))
-        // nested message routes
         .route(
             "/api/sessions/{:id}/messages",
             get(list_messages_handler).post(create_message_handler),
-        )
-        .route("/", get(|| home_page()))
+        );
+
+    let app = Router::new()
+        .nest("/api", routes)
+        // nested message routes
         .with_state(pool)
+        .layer(cors)
         .layer(TraceLayer::new_for_http())
-        .layer(cors);
+        .nest_service("/", ServeDir::new("dist"));
 
     // Run the server
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
+    let port: u16 = port.parse().expect("PORT must be a number");
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
     tracing::info!("Server listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app.into_make_service()).await?;
 
     Ok(())
-}
-
-async fn home_page() -> Html<&'static str> {
-    Html("<h1>Welcome to Aazan! 🎓</h1><p>Learn by Teaching - Backend is working!</p>")
 }

@@ -1,0 +1,27 @@
+# Ignore build artifacts
+target/
+backend/target/
+frontend/target/
+
+# Ignore local dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Ignore database files
+*.db
+*.db-shm
+*.db-wal
+backend/data/
+
+# Ignore development files
+.env
+.env.*
+aazan_dev_prompt.md
+
+# Ignore IDE files
+.idea/
+.vscode/
+
+# But make sure .sqlx is included (it's not ignored by default)
+! .sqlx/

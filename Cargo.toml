@@ -25,3 +25,6 @@ inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"
+
+[profile.docker]
+inherits = "release"

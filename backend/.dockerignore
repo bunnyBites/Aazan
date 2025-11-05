@@ -1,0 +1,8 @@
+# Ignore the build artifacts from both crates
+target/
+backend/target/
+frontend/target/
+
+# Ignore local dependencies
+backend/node_modules/
+frontend/node_modules/
